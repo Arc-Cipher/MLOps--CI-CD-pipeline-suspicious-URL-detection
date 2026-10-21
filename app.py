@@ -26,13 +26,16 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("mlmon")
 
-# Ensure feedback storage directory exists
+# Ensure feedback storage directory exists and safely initialize CSV header
 fb_dir = os.path.dirname(FEEDBACK_FILE) or "."
-os.makedirs(fb_dir, exist_ok=True)
-if not os.path.exists(FEEDBACK_FILE):
-    with open(FEEDBACK_FILE, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["timestamp", "url", "predicted", "actual", "label", "is_correct"])
+try:
+    os.makedirs(fb_dir, exist_ok=True)
+    if not os.path.exists(FEEDBACK_FILE):
+        with open(FEEDBACK_FILE, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["timestamp", "url", "predicted", "actual", "label", "is_correct"])
+except Exception as e:
+    log.error(f"Warning: Could not initialize feedback storage at {FEEDBACK_FILE}: {e}")
 
 # ---------- prometheus metrics ----------
 HTTP_REQS = Counter("http_requests_total", "HTTP requests",
@@ -223,7 +226,6 @@ def feedback():
         return jsonify(error=f"'predicted' and 'actual' must be in {CLASSES}"), 400
 
     url = d.get("url", "").strip()
-    # If URL not provided in feedback, check if available from recent predictions cache
     if not url and len(_last_predictions) > 0:
         url = _last_predictions[-1]["url"]
 
@@ -231,7 +233,6 @@ def feedback():
     FEEDBACK.labels(str(ok).lower()).inc()
     FEEDBACK_STORED.inc()
 
-    # Append feedback persistently to CSV for future retraining
     numeric_label = 1 if act == "phishing" else 0
     with _lock:
         _fb_window.append(1 if ok else 0)
@@ -251,11 +252,13 @@ def feedback():
         except Exception as e:
             log.error(f"Error persisting feedback to {FEEDBACK_FILE}: {e}")
 
-    # Count total feedback recorded
     total_stored = 0
     if os.path.exists(FEEDBACK_FILE):
-        with open(FEEDBACK_FILE, mode="r", encoding="utf-8") as f:
-            total_stored = max(0, sum(1 for _ in f) - 1)
+        try:
+            with open(FEEDBACK_FILE, mode="r", encoding="utf-8") as f:
+                total_stored = max(0, sum(1 for _ in f) - 1)
+        except Exception:
+            pass
 
     return jsonify(
         status="recorded",
@@ -274,15 +277,18 @@ def feedback_stats():
     recent = []
 
     if os.path.exists(FEEDBACK_FILE):
-        with open(FEEDBACK_FILE, mode="r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for r in reader:
-                total += 1
-                if r.get("is_correct") == "1":
-                    correct += 1
-                else:
-                    incorrect += 1
-                recent.append(r)
+        try:
+            with open(FEEDBACK_FILE, mode="r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for r in reader:
+                    total += 1
+                    if r.get("is_correct") == "1":
+                        correct += 1
+                    else:
+                        incorrect += 1
+                    recent.append(r)
+        except Exception as e:
+            log.error(f"Error reading feedback stats from {FEEDBACK_FILE}: {e}")
 
     return jsonify(
         total_feedback=total,

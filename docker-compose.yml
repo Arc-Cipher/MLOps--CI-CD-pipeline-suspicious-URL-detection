@@ -2,6 +2,7 @@ services:
   app:
     build: .
     image: mlmon-app:latest
+    user: root
     ports: ["5000:5000"]
     environment:
       GRAFANA_URL: http://localhost:3000
