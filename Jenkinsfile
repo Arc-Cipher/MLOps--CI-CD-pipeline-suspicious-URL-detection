@@ -53,23 +53,19 @@ pipeline {
     stage('Smoke test stack') {
       steps {
         sh '''
-          ${COMPOSE} up -d --build app
+          ${COMPOSE} up -d --no-build app
           for i in $(seq 1 30); do
-            curl -sf http://localhost:5000/health || curl -sf http://app:5000/health && break || sleep 2
+            curl -sf http://app:5000/health || curl -sf http://localhost:5000/health && break || sleep 2
           done
-          curl -sf -X POST http://localhost:5000/api/predict \
-            -H 'Content-Type: application/json' \
-            -d '{"url":"https://www.google.com"}' || \
           curl -sf -X POST http://app:5000/api/predict \
             -H 'Content-Type: application/json' \
-            -d '{"url":"https://www.google.com"}'
-          curl -sf http://localhost:5000/metrics || curl -sf http://app:5000/metrics
+            -d '{"url":"https://www.google.com"}' | grep legitimate
+          curl -sf http://app:5000/metrics | grep model_predictions_total
         '''
       }
     }
 
     stage('Deploy') {
-      when { branch 'main' }
       steps {
         sh '${COMPOSE} up -d'
       }
