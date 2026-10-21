@@ -14,8 +14,8 @@ pipeline {
   }
 
   environment {
-    IMAGE    = 'mlmon-app'
-    COMPOSE  = 'docker compose -p mlmon'
+    IMAGE        = 'mlmon-app'
+    COMPOSE      = 'docker compose -p mlmon'
     MIN_ACCURACY = '0.85'
   }
 
@@ -53,13 +53,35 @@ pipeline {
     stage('Smoke test stack') {
       steps {
         sh '''
+          # Prepare host-mounted feedback directory with write permissions for container non-root user
+          mkdir -p data
+          chmod 777 data
+
           ${COMPOSE} up -d --no-build app
-          for i in $(seq 1 30); do
-            curl -sf http://app:5000/health || curl -sf http://localhost:5000/health && break || sleep 2
+
+          # Poll health check with status output
+          SUCCESS=0
+          for i in $(seq 1 15); do
+            if curl -sf http://app:5000/health || curl -sf http://localhost:5000/health; then
+              echo "Health check passed!"
+              SUCCESS=1
+              break
+            fi
+            echo "Waiting for app service to boot... (attempt $i/15)"
+            sleep 2
           done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "Health check failed! Fetching container logs:"
+            ${COMPOSE} logs --tail=50 app
+            exit 1
+          fi
+
+          # Functional API tests
           curl -sf -X POST http://app:5000/api/predict \
             -H 'Content-Type: application/json' \
             -d '{"url":"https://www.google.com"}' | grep legitimate
+
           curl -sf http://app:5000/metrics | grep model_predictions_total
         '''
       }
@@ -67,7 +89,11 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        sh '${COMPOSE} up -d --no-build app'
+        sh '''
+          mkdir -p data
+          chmod 777 data
+          ${COMPOSE} up -d --no-build app
+        '''
       }
     }
   }
