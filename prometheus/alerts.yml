@@ -1,0 +1,33 @@
+groups:
+  - name: model-health
+    rules:
+      - alert: DataDriftDetected
+        expr: max(model_drift_ks_statistic) > 0.4
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: "URL input drift detected: KS statistic {{ $value | printf \"%.2f\" }} vs baseline"
+      - alert: LiveAccuracyLow
+        expr: model_live_accuracy < 0.8
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "Live classification accuracy dropped to {{ $value | printf \"%.2f\" }}"
+      - alert: HighP95Latency
+        expr: histogram_quantile(0.95, sum by (le) (rate(model_prediction_latency_seconds_bucket[5m]))) > 0.1
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "p95 inference latency above 100ms"
+      - alert: ApiErrorRateHigh
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) > 0.1
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "5xx error rate elevated"
+      - alert: PhishingAttackSpike
+        expr: sum(rate(model_predictions_total{predicted_class="phishing"}[2m])) > 10
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: "Surge in malicious phishing URL submissions detected"

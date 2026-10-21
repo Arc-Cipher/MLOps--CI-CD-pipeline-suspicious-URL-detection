@@ -1,0 +1,16 @@
+FROM jenkins/jenkins:lts
+USER root
+
+# Install Python 3, venv, pip, Git, and Docker CLI
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    git \
+    curl \
+    docker.io \
+    docker-cli \
+    docker-buildx \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+USER jenkins
