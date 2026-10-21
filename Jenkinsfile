@@ -67,7 +67,7 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        sh '${COMPOSE} up -d'
+        sh '${COMPOSE} up -d --no-build app'
       }
     }
   }
