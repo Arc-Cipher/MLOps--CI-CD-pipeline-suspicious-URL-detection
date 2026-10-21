@@ -2,3 +2,6 @@ timestamp,url,predicted,actual,label,is_correct
 2026-10-21T13:42:59Z,https://github.com/Arc-Cipher/MLOps--CI-CD-pipeline-suspicious-URL-detection,legitimate,phishing,1,0
 2026-10-21T13:48:48Z,https://github.com/Arc-Cipher/,legitimate,legitimate,0,1
 2026-10-21T14:04:55Z,https://gemini.google.com/app/35701a97eba88311,legitimate,legitimate,0,1
+2026-10-21T14:09:35Z,https://www.google.com/search?q=does+alt+f3+deletes+apps%3F&oq=does+alt+f3+deletes+apps%3F&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRigATIHCAIQIRigATIHCAMQIRigATIHCAQQIRiPAjIHCAUQIRiPAtIBCjI3NjA0ajBqMTWoAgiwAgHxBZNZEnkATD_g&sourceid=chrome&source=chrome.rb&ie=UTF-8,phishing,legitimate,0,0
+2026-10-21T14:12:02Z,https://web.whatsapp.com/,legitimate,legitimate,0,1
+2026-10-21T14:42:36Z,https://chatgpt.com/c/6ad8b479-3044-83ee-a7a2-ec2e85ac77c3,phishing,phishing,1,1

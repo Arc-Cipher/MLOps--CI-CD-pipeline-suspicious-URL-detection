@@ -10,6 +10,7 @@ services:
       DATASET_PATH: /srv/phishing_urls_1000.csv
     volumes:
       - ./data:/srv/data
+      - ${DATA_DIR:-./data}:/srv/data
     restart: unless-stopped
 
   prometheus:
