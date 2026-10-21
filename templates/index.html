@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cybersecurity URL Phishing Scanner · Model Monitor</title>
+<title>Cybersecurity URL Phishing Scanner · Model Monitor & Active Learning</title>
 <style>
   :root {
     --bg: #0b0f19;
@@ -17,6 +17,8 @@
     --phish: #ef4444;
     --warn: #f59e0b;
     --line: #374151;
+    --purple: #8b5cf6;
+    --purple-hover: #7c3aed;
   }
   * { box-sizing: border-box; }
   body {
@@ -134,9 +136,7 @@
   }
   .badge.safe { background: rgba(16, 185, 129, 0.15); color: var(--safe); border: 1px solid rgba(16, 185, 129, 0.3); }
   .badge.phishing { background: rgba(239, 68, 68, 0.15); color: var(--phish); border: 1px solid rgba(239, 68, 68, 0.3); }
-  .score-gauge {
-    margin: 16px 0;
-  }
+  .score-gauge { margin: 16px 0; }
   .score-val { font-size: 28px; font-weight: 800; font-family: monospace; }
   .bar {
     height: 8px;
@@ -175,7 +175,7 @@
   }
   .btn-fb {
     flex: 1;
-    padding: 8px 12px;
+    padding: 9px 12px;
     font-size: 12px;
     font-weight: 600;
     border-radius: 6px;
@@ -186,6 +186,34 @@
     transition: all 0.15s;
   }
   .btn-fb:hover { background: #374151; }
+  .btn-retrain {
+    background: var(--purple);
+    color: #fff;
+    border: 0;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-retrain:hover { background: var(--purple-hover); }
+  .btn-retrain:disabled { opacity: 0.6; cursor: not-allowed; }
+  .retrain-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 18px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 8px;
+    margin-top: 16px;
+  }
   .wide { grid-column: 1 / -1; }
   .kpi-container {
     display: grid;
@@ -197,6 +225,7 @@
   .msg { font-size: 12px; margin-top: 10px; }
   .msg.ok { color: var(--safe); }
   .msg.bad { color: var(--phish); }
+  .msg.info { color: var(--purple); }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -219,16 +248,16 @@
     <h2>URL Inspection & Feature Extractor</h2>
     <form id="scanForm">
       <label for="urlInput">Enter Target URL to Analyze</label>
-      <input type="text" id="urlInput" placeholder="e.g. https://paypal-security-update.xyz/login.php" required autofocus>
+      <input type="text" id="urlInput" placeholder="e.g. https://update-paypal-security.site/account/verify" required autofocus>
       
-      <label>Quick Test Samples</label>
+      <label>Quick Test Samples (from CSV Dataset)</label>
       <div class="presets">
-        <button type="button" class="preset-btn safe-preset" data-url="https://www.google.com/search?q=machine+learning+monitoring">✓ Safe: Google Search</button>
-        <button type="button" class="preset-btn safe-preset" data-url="https://github.com/torvalds/linux/commits/master">✓ Safe: GitHub</button>
-        <button type="button" class="preset-btn safe-preset" data-url="https://en.wikipedia.org/wiki/Computer_security">✓ Safe: Wikipedia</button>
-        <button type="button" class="preset-btn phish-preset" data-url="http://login.paypal.com.account-update.xyz/verify.php?token=9283">⚠ Phish: Fake PayPal</button>
-        <button type="button" class="preset-btn phish-preset" data-url="http://192.168.1.105/bank-security/login.html">⚠ Phish: IP Redirect</button>
-        <button type="button" class="preset-btn phish-preset" data-url="http://appleid-verify.support-device.cc/signin/auth?session=x83">⚠ Phish: Spoofed AppleID</button>
+        <button type="button" class="preset-btn safe-preset" data-url="https://huggingface.co/contact-us">✓ Safe: HuggingFace</button>
+        <button type="button" class="preset-btn safe-preset" data-url="https://kaggle.com/account/settings">✓ Safe: Kaggle</button>
+        <button type="button" class="preset-btn safe-preset" data-url="https://jenkins.io/terms">✓ Safe: Jenkins</button>
+        <button type="button" class="preset-btn phish-preset" data-url="http://confirm-micros0ft-help.online/verify-account?id=32942">⚠ Phish: Fake Microsoft</button>
+        <button type="button" class="preset-btn phish-preset" data-url="http://update-paypal-security.site/account/verify?session=51320bac">⚠ Phish: PayPal Fake</button>
+        <button type="button" class="preset-btn phish-preset" data-url="https://portal.microsoft.com.verify-user12.shop/security-check/verify">⚠ Phish: Subdomain Trick</button>
       </div>
 
       <button type="submit" class="submit-btn" id="submitBtn">Analyze URL Threat Level</button>
@@ -262,10 +291,10 @@
       <div style="font-size: 12px; color: var(--muted); margin-bottom: 6px;">Lexical & Structural Telemetry</div>
       <div class="feature-grid" id="featureGrid"></div>
 
-      <!-- Human-in-the-Loop Feedback -->
+      <!-- Human-in-the-Loop Feedback & Active Learning -->
       <div class="feedback-box">
         <div style="font-size: 12px; color: var(--muted); margin-bottom: 6px;">
-          Human-in-the-Loop Feedback (Updates Live Accuracy Metric)
+          Human-in-the-Loop Feedback (Saves to Persistent CSV Store for Model Retraining)
         </div>
         <div class="feedback-actions">
           <button type="button" class="btn-fb" id="fbLegit">Mark Actual: Legitimate</button>
@@ -276,31 +305,60 @@
     </div>
   </section>
 
-  <!-- Model Benchmarks -->
+  <!-- Active Learning Retraining & Model Performance -->
   <section class="card wide">
-    <h2>Model Performance & Quality Gate (Training Hold-Out)</h2>
-    <div class="kpi-container">
-      <div class="kpi"><b>{{ "%.2f"|format(metrics.accuracy * 100) }}%</b><span>Accuracy</span></div>
-      <div class="kpi"><b>{{ "%.2f"|format(metrics.f1_macro * 100) }}%</b><span>Macro F1</span></div>
-      <div class="kpi"><b>{{ "%.2f"|format(metrics.precision_macro * 100) }}%</b><span>Precision</span></div>
-      <div class="kpi"><b>{{ "%.2f"|format(metrics.recall_macro * 100) }}%</b><span>Recall</span></div>
-      <div class="kpi"><b>{{ "%.2f"|format(metrics.cv_accuracy_5fold * 100) }}%</b><span>5-Fold CV</span></div>
-      <div class="kpi"><b style="font-size:13px">{{ metrics.model_version }}</b><span>{{ metrics.model_type }}</span></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+      <h2 style="margin:0;">Model Performance & Continuous Training</h2>
+      <span id="feedbackCounter" style="font-size:12px; color:var(--purple); font-weight:600;">Feedback Collected: Checking...</span>
     </div>
+
+    <div class="kpi-container" id="kpiContainer">
+      <div class="kpi"><b id="kpiAcc">{{ "%.2f"|format(metrics.accuracy * 100) }}%</b><span>Accuracy</span></div>
+      <div class="kpi"><b id="kpiF1">{{ "%.2f"|format(metrics.f1_macro * 100) }}%</b><span>Macro F1</span></div>
+      <div class="kpi"><b id="kpiTotal">{{ metrics.total_training_samples|default(1000) }}</b><span>Total Samples</span></div>
+      <div class="kpi"><b id="kpiFeedback">{{ metrics.feedback_samples_count|default(0) }}</b><span>Feedback Used</span></div>
+      <div class="kpi"><b id="kpiCv">{{ "%.2f"|format(metrics.cv_accuracy_5fold * 100) }}%</b><span>5-Fold CV</span></div>
+      <div class="kpi"><b id="kpiVersion" style="font-size:13px">{{ metrics.model_version }}</b><span>{{ metrics.model_type }}</span></div>
+    </div>
+
+    <!-- Retraining Action Banner -->
+    <div class="retrain-banner">
+      <div>
+        <div style="font-weight:600; font-size:13px; color:#fff;">Active Learning Retraining Loop</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;">
+          Train the model on base CSV (<span id="baseCount">{{ metrics.base_samples_count|default(1000) }}</span>) + newly collected human feedback corrections.
+        </div>
+      </div>
+      <button type="button" class="btn-retrain" id="retrainBtn">⚡ Retrain Model with Feedback</button>
+    </div>
+    <div id="retrainMsg" class="msg" style="margin-top:10px;"></div>
   </section>
 </main>
 
 <script>
 const $ = id => document.getElementById(id);
 let currentPrediction = null;
+let currentUrl = null;
 
-// Preset buttons
+// Presets
 document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.onclick = () => {
     $('urlInput').value = btn.getAttribute('data-url');
     $('scanForm').dispatchEvent(new Event('submit'));
   };
 });
+
+// Update feedback counter on load
+async function refreshFeedbackStats() {
+  try {
+    const res = await fetch('/api/feedback/stats');
+    if (res.ok) {
+      const data = await res.json();
+      $('feedbackCounter').textContent = `Feedback Collected: ${data.total_feedback} samples (${data.incorrect} corrections)`;
+    }
+  } catch (e) {}
+}
+refreshFeedbackStats();
 
 // Form submit
 $('scanForm').onsubmit = async (e) => {
@@ -309,6 +367,7 @@ $('scanForm').onsubmit = async (e) => {
   const url = $('urlInput').value.trim();
   if (!url) return;
 
+  currentUrl = url;
   $('submitBtn').textContent = 'Analyzing...';
   try {
     const res = await fetch('/api/predict', {
@@ -326,19 +385,16 @@ $('scanForm').onsubmit = async (e) => {
     $('emptyResult').classList.add('hidden');
     $('analysisResult').classList.remove('hidden');
 
-    // Badge & Confidence
     const badge = $('threatBadge');
     badge.className = 'badge ' + data.prediction;
     badge.textContent = data.prediction === 'phishing' ? '🚨 Phishing / Malicious' : '🛡️ Legitimate (Safe)';
     $('confText').textContent = 'Confidence: ' + (data.confidence * 100).toFixed(1) + '%';
 
-    // Risk score
     const risk = data.risk_score || 0;
     $('riskScoreLabel').textContent = risk.toFixed(1) + '%';
     $('riskBar').style.width = risk + '%';
     $('riskBar').className = risk > 50 ? 'bar-phish' : 'bar-safe';
 
-    // Features
     const feats = data.features || {};
     $('featureGrid').innerHTML = `
       <div class="feat-box"><span>Shannon Entropy</span><b>${feats.entropy ?? 'N/A'}</b></div>
@@ -356,19 +412,22 @@ $('scanForm').onsubmit = async (e) => {
   }
 };
 
-// Ground-truth feedback
+// Ground-truth feedback with persistent URL logging
 async function sendFeedback(actualClass) {
-  if (!currentPrediction) return;
+  if (!currentPrediction || !currentUrl) return;
   try {
     const res = await fetch('/api/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ predicted: currentPrediction, actual: actualClass })
+      body: JSON.stringify({ url: currentUrl, predicted: currentPrediction, actual: actualClass })
     });
     const d = await res.json();
     if (res.ok) {
       $('fbMsg').className = 'msg ' + (d.correct ? 'ok' : 'bad');
-      $('fbMsg').textContent = d.correct ? '✓ Ground truth matched prediction (Live accuracy increased)' : '⚠ Ground truth reported as misclassification (Live accuracy updated)';
+      $('fbMsg').textContent = d.correct 
+        ? `✓ Verified correct. Saved to feedback store (Total feedback saved: ${d.total_feedback_stored})`
+        : `⚠ Misclassification recorded. Saved to feedback store (Total feedback saved: ${d.total_feedback_stored})`;
+      refreshFeedbackStats();
     } else {
       $('fbMsg').className = 'msg bad';
       $('fbMsg').textContent = d.error;
@@ -381,6 +440,37 @@ async function sendFeedback(actualClass) {
 
 $('fbLegit').onclick = () => sendFeedback('legitimate');
 $('fbPhish').onclick = () => sendFeedback('phishing');
+
+// Active learning retraining trigger
+$('retrainBtn').onclick = async () => {
+  $('retrainBtn').disabled = true;
+  $('retrainBtn').textContent = 'Training Model...';
+  $('retrainMsg').className = 'msg info';
+  $('retrainMsg').textContent = 'Executing retrain on CSV dataset + feedback data...';
+
+  try {
+    const res = await fetch('/api/retrain', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      $('retrainMsg').className = 'msg ok';
+      $('retrainMsg').textContent = `✓ Model successfully retrained & hot-reloaded! Version: ${data.model_version} (Trained on ${data.total_training_samples} total samples with ${data.feedback_incorporated} feedback corrections, Accuracy: ${(data.accuracy * 100).toFixed(1)}%)`;
+      $('kpiAcc').textContent = (data.accuracy * 100).toFixed(1) + '%';
+      $('kpiTotal').textContent = data.total_training_samples;
+      $('kpiFeedback').textContent = data.feedback_incorporated;
+      $('kpiVersion').textContent = data.model_version;
+      refreshFeedbackStats();
+    } else {
+      $('retrainMsg').className = 'msg bad';
+      $('retrainMsg').textContent = data.error || 'Retraining failed';
+    }
+  } catch (err) {
+    $('retrainMsg').className = 'msg bad';
+    $('retrainMsg').textContent = 'Network error triggering retrain';
+  } finally {
+    $('retrainBtn').disabled = false;
+    $('retrainBtn').textContent = '⚡ Retrain Model with Feedback';
+  }
+};
 </script>
 </body>
 </html>

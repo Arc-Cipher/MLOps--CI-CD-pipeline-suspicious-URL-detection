@@ -89,7 +89,11 @@ for i in range(a.n):
         if random.random() < a.label_noise + (0.35 if a.drift else 0):
             feedback_actual = "phishing" if actual == "legitimate" else "legitimate"
 
-        post("/api/feedback", {"predicted": res["prediction"], "actual": feedback_actual})
+        post("/api/feedback", {
+            "url": target_url,
+            "predicted": res["prediction"],
+            "actual": feedback_actual
+        })
 
         if (i + 1) % 50 == 0:
             pred_class = res['prediction']

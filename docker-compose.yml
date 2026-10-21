@@ -5,6 +5,10 @@ services:
     ports: ["5000:5000"]
     environment:
       GRAFANA_URL: http://localhost:3000
+      FEEDBACK_FILE: /srv/data/feedback.csv
+      DATASET_PATH: /srv/phishing_urls_1000.csv
+    volumes:
+      - ./data:/srv/data
     restart: unless-stopped
 
   prometheus:

@@ -3,9 +3,10 @@ ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /srv
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-COPY features.py train.py app.py ./
+COPY features.py train.py app.py phishing_urls_1000.csv ./
 COPY templates templates
-# Bake a freshly trained, quality-gated model into the image
+RUN mkdir -p /srv/data
+# Bake a freshly trained, quality-gated model into the image using CSV dataset
 RUN python train.py
 RUN useradd -m app && chown -R app /srv
 USER app
