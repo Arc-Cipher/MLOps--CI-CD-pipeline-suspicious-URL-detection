@@ -9,7 +9,7 @@ pipeline {
 
   // Poll SCM on push + scheduled weekly retrain (re-runs train + quality gate + deploy)
   triggers {
-    pollSCM('H/5 * * * * *')
+    pollSCM('* * * * *')
     cron('H 2 * * 0')
   }
 
