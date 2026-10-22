@@ -271,3 +271,5 @@ This section maps technical components directly to academic report chapters and 
 | **6. Results & Conclusion** | • Evaluation metrics ($100\%$ accuracy on holdout set, $0.9930$ 5-fold CV).<br>
 
 <br>• Zero-downtime deployment capabilities using Docker-in-Docker workflows. |
+
+<!-- docker compose -p mlmon up -d jenkins -->
