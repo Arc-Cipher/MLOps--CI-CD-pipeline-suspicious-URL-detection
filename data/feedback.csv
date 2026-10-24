@@ -8,3 +8,9 @@ timestamp,url,predicted,actual,label,is_correct
 2026-10-21T14:53:59Z,https://www.google.com/search?q=claude+ai&sca_esv=06e88915fa4d4c07&sxsrf=APpeQnvTQJ7B6lChBM9h__fXuHsJsv1cfQ%3A1792586037847&ei=NbHYaryaM-KuwcsP1tyRoQc&biw=1536&bih=776&oq=&gs_lp=Egxnd3Mtd2l6LXNlcnAiACoHCAIY6gIYJzIHECMY6gIYJzIHECMY6gIYJzIHECMY6gIYJzIHECMY6gIYJzIHECMY6gIYJzIHECMY6gIYJzIHECMY6gIYJzIHECMY6gIYJzINEC4YxwEY0QMY6gIYJzIHECMY6gIYJzIXEAAYgAQYigUYkQIY5wYY6gIYtALYAQEyFxAAGIAEGIoFGJECGOcGGOoCGLQC2AEBMhcQABiABBiKBRiRAhjnBhjqAhi0AtgBATIXEAAYgAQYigUYkQIY5wYY6gIYtALYAQEyGhAAGIAEGIoFGJECGOcGGLQHGOoCGLQC2AEBMhcQABiABBiKBRiRAhjnBhjqAhi0AtgBAUiIDlAAWABwAXgBkAEAmAEAoAEAqgEAuAEByAEAmAIBoAISqAIQmAMS8QWMxDDSxtM_RboGBggBEAEYAZIHATGgBwCyBwC4BwDCBwMzLTHIBwiACAE&sclient=gws-wiz-serp,phishing,legitimate,0,0
 2026-10-22T04:46:32Z,https://ngrok.com/download/windows,legitimate,legitimate,0,1
 2026-10-23T15:49:09Z,https://gemini.google.com/app/35701a97eba88311,legitimate,legitimate,0,1
+2026-10-24T06:54:41Z,https://spring.io/quickstart,legitimate,legitimate,0,1
+2026-10-24T06:54:42Z,https://spring.io/quickstart,legitimate,legitimate,0,1
+2026-10-24T06:54:42Z,https://spring.io/quickstart,legitimate,legitimate,0,1
+2026-10-24T06:54:42Z,https://spring.io/quickstart,legitimate,legitimate,0,1
+2026-10-24T06:54:42Z,https://spring.io/quickstart,legitimate,legitimate,0,1
+2026-10-24T06:54:42Z,https://spring.io/quickstart,legitimate,legitimate,0,1
